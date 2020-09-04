@@ -1,5 +1,6 @@
 import base64
 import os
+import tempfile
 import time
 
 import requests
@@ -56,11 +57,11 @@ nxs4TLO3kZjUTgWKdhpgRNF5hwaz51ZjpebaRf/ZqRuNyX4lIRolDxzOn/+O1o8L
 qG2ZdhHHmSK2LaQLFiSprUkikStNU9BqSQ==
 =5OGa
 -----END PGP PUBLIC KEY BLOCK-----"""
-AVATAR_PATH = os.path.join(os.path.dirname(__file__), "avatar.png")
-
+AVATAR_PATH = os.path.join(os.path.dirname(__file__), "..", "fixtures", "avatar.png")
+TMP_DIR = tempfile.gettempdir()
 
 # token authentication from config file
-gl = gitlab.Gitlab.from_config(config_files=["/tmp/python-gitlab.cfg"])
+gl = gitlab.Gitlab.from_config(config_files=[f"{TMP_DIR}/python-gitlab.cfg"])
 gl.auth()
 assert isinstance(gl.user, gitlab.v4.objects.CurrentUser)
 
@@ -388,7 +389,7 @@ assert export.message == "202 Accepted"
 # We cannot check for export_status with group export API
 time.sleep(10)
 
-import_archive = "/tmp/gitlab-group-export.tgz"
+import_archive = f"{TMP_DIR}/gitlab-group-export.tgz"
 import_path = "imported_group"
 import_name = "Imported Group"
 
@@ -1062,11 +1063,13 @@ while ex.export_status != "finished":
     count += 1
     if count == 10:
         raise Exception("Project export taking too much time")
-with open("/tmp/gitlab-export.tgz", "wb") as f:
+with open(f"{TMP_DIR}/gitlab-export.tgz", "wb") as f:
     ex.download(streamed=True, action=f.write)
 
 output = gl.projects.import_project(
-    open("/tmp/gitlab-export.tgz", "rb"), "imported_project", name="Imported Project"
+    open(f"{TMP_DIR}/gitlab-export.tgz", "rb"),
+    "imported_project",
+    name="Imported Project",
 )
 project_import = gl.projects.get(output["id"], lazy=True).imports.get()
 

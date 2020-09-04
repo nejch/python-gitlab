@@ -1,0 +1,2 @@
+pytest-console-scripts
+pytest-docker
